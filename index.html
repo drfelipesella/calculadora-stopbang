@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora STOP-Bang - Avaliação de AOS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    h2 {
+      color: #004080;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .resultado {
+      margin-top: 30px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Calculadora STOP-Bang - Avaliação de Apneia Obstrutiva do Sono</h2>
+
+  <form id="stopbangForm">
+    <div id="perguntas"></div>
+    <button type="button" onclick="calcularSTOPBang()">Calcular Resultado</button>
+  </form>
+
+  <div class="resultado" id="resultado" style="display:none;"></div>
+
+  <script>
+    const perguntas = [
+      {texto: "Você ronca alto (ronco ouvido através de portas fechadas ou acorda seu parceiro)?", categoria: "stop"},
+      {texto: "Você frequentemente se sente cansado, exausto ou sonolento durante o dia?", categoria: "stop"},
+      {texto: "Alguém já observou você parar de respirar durante o sono?", categoria: "stop"},
+      {texto: "Você tem ou está sendo tratado para pressão alta?", categoria: "stop"},
+      {texto: "Seu índice de massa corporal (IMC) é maior que 35 kg/m²?", categoria: "bang"},
+      {texto: "Você tem mais de 50 anos de idade?", categoria: "bang"},
+      {texto: "Seu pescoço é grosso? (Homens ≥ 43 cm, Mulheres ≥ 41 cm)", categoria: "bang"},
+      {texto: "Você é do sexo masculino?", categoria: "bang"}
+    ];
+
+    function criarFormulario() {
+      const container = document.getElementById('perguntas');
+
+      perguntas.forEach((pergunta, index) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+
+        const label = document.createElement('label');
+        label.innerText = pergunta.texto;
+        div.appendChild(label);
+
+        const sim = document.createElement('input');
+        sim.type = 'radio';
+        sim.name = `q${index}`;
+        sim.value = 1;
+        div.appendChild(sim);
+        div.appendChild(document.createTextNode(' Sim'));
+
+        const nao = document.createElement('input');
+        nao.type = 'radio';
+        nao.name = `q${index}`;
+        nao.value = 0;
+        div.appendChild(nao);
+        div.appendChild(document.createTextNode(' Não'));
+
+        container.appendChild(div);
+      });
+    }
+
+    function calcularSTOPBang() {
+      let score = 0;
+      let stopCount = 0;
+      let imcElevado = false;
+      let pescocoGrosso = false;
+      let masculino = false;
+
+      perguntas.forEach((pergunta, index) => {
+        const opcoes = document.getElementsByName(`q${index}`);
+        for (let opc of opcoes) {
+          if (opc.checked) {
+            if (parseInt(opc.value) === 1) {
+              score++;
+              if (pergunta.categoria === "stop") stopCount++;
+              if (index === 4) imcElevado = true;
+              if (index === 6) pescocoGrosso = true;
+              if (index === 7) masculino = true;
+            }
+          }
+        }
+      });
+
+      if (document.querySelectorAll('input[type="radio"]:checked').length < 8) {
+        alert("Por favor, responda todas as perguntas.");
+        return;
+      }
+
+      let risco = "Baixo risco de AOS (0-2 respostas Sim)";
+
+      if (score >= 5) {
+        risco = "Alto risco de AOS (5-8 respostas Sim)";
+      } else if (score >= 3) {
+        risco = "Risco intermediário de AOS (3-4 respostas Sim)";
+      }
+
+      if (stopCount >= 2 && (masculino || imcElevado || pescocoGrosso)) {
+        risco = "Alto risco de AOS (Critério STOP + BANG)";
+      }
+
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = `
+        <h3>Resultado:</h3>
+        <p><strong>Escore total:</strong> ${score} pontos</p>
+        <p><strong>Classificação:</strong> ${risco}</p>
+      `;
+      resultado.style.display = "block";
+    }
+
+    window.onload = criarFormulario;
+  </script>
+
+</body>
+</html>
